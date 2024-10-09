@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    /* Background image for the entire screen */
+    body {
+        background: url('https://greenstories.co.in/wp-content/uploads/2021/04/Ramkumar-Radhakrishnan-Wikimedia-1569929663.jpeg') no-repeat center center fixed;
+        background-size: cover;
+        height: 100vh;
+        /* display: flex; */
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* Glass effect for the card */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    /* Optional: To make the text on the cards more readable */
+    .form-label,
+    .card-title,
+    input {
+        color: #000000;
+    }
+</style>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card glass-card shadow-lg">
+                <div class="card-body">
+                    <h3 class="card-title text-center mb-4">Farmer Signup</h3>
+
+                    <!-- Display Django messages for feedback -->
+                    {% if messages %}
+                    <div class="alert alert-dismissible fade show" role="alert">
+                        {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Signup Form -->
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        <!-- Username Field -->
+                        <div class="mb-4">
+                            <label class="form-label" for="username">Username</label>
+                            <input type="text" id="username" class="form-control" name="username" required />
+                        </div>
+
+                        <!-- Password Field -->
+                        <div class="mb-4">
+                            <label class="form-label" for="password">Password</label>
+                            <input type="password" id="password" class="form-control" name="password" required />
+                        </div>
+
+                        <!-- Confirm Password Field -->
+                        <div class="mb-4">
+                            <label class="form-label" for="confirm_password">Confirm Password</label>
+                            <input type="password" id="confirm_password" class="form-control" name="confirm_password"
+                                required />
+                        </div>
+
+                        <!-- Farm Name Field -->
+                        <div class="mb-4">
+                            <label class="form-label" for="farm_name">Farm Name</label>
+                            <input type="text" id="farm_name" class="form-control" name="farm_name" required />
+                        </div>
+
+                        <!-- Location Field -->
+                        <div class="mb-4">
+                            <label class="form-label" for="location">Location</label>
+                            <input type="text" id="location" class="form-control" name="location" required />
+                        </div>
+
+                        <!-- Contact Number Field -->
+                        <div class="mb-4">
+                            <label class="form-label" for="contact_number">Contact Number</label>
+                            <input type="text" id="contact_number" class="form-control" name="contact_number"
+                                required />
+                        </div>
+
+                        <!-- Face Capture Section -->
+                        <div class="mb-4 text-center">
+                            <label class="form-label">Face Capture</label>
+                            <div class="d-grid gap-2">
+                                <button type="button" class="btn btn-secondary" id="start_camera">Start Camera</button>
+                                <button type="button" class="btn btn-secondary" id="capture_face">Capture Face</button>
+                            </div>
+                            <small class="form-text text-muted">Ensure your face is clearly visible in the camera before
+                                capturing.</small>
+
+                            <!-- Video element to show the live feed -->
+                            <div class="mt-3">
+                                <video id="video" width="100%" height="300" autoplay></video>
+                            </div>
+                            <!-- Hidden canvas element for face capture -->
+                            <canvas id="canvas" style="display:none;"></canvas>
+                            <!-- Image preview (for debugging) -->
+                            <img id="captured_image" src="" style="display:none;" alt="Captured Image"
+                                class="mt-3 img-thumbnail" />
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button type="submit" class="btn btn-primary btn-block">Sign Up</button>
+
+                        <!-- Hidden input field to store face image data -->
+                        <input type="hidden" name="face_image" id="face_image">
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Include JavaScript for handling face capture -->
+<script>
+    // Elements
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const captureButton = document.getElementById('capture_face');
+    const startCameraButton = document.getElementById('start_camera');
+    const capturedImage = document.getElementById('captured_image');
+    const faceImageInput = document.getElementById('face_image');
+
+    // Start the webcam stream
+    startCameraButton.addEventListener('click', function () {
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(function (stream) {
+                video.srcObject = stream;
+            })
+            .catch(function (error) {
+                console.error("Error accessing the camera: ", error);
+                alert('Error accessing the camera');
+            });
+    });
+
+    // Capture face image from the video stream
+    captureButton.addEventListener('click', function () {
+        // Set canvas dimensions same as video
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+
+        // Draw the current frame from the video onto the canvas
+        const context = canvas.getContext('2d');
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        // Convert the canvas content to a data URL (base64 encoded image)
+        const imageDataUrl = canvas.toDataURL('image/png');
+
+        // Set the captured image preview (for debugging)
+        capturedImage.src = imageDataUrl;
+        capturedImage.style.display = 'block';
+
+        // Set the hidden input field with the base64 image data to send to the server
+        faceImageInput.value = imageDataUrl;
+    });
+</script>
+
+
+{% endblock %}

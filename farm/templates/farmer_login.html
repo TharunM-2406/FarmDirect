@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    /* Background image for the entire screen */
+    body {
+        background: url('https://greenstories.co.in/wp-content/uploads/2021/04/Ramkumar-Radhakrishnan-Wikimedia-1569929663.jpeg') no-repeat center center fixed;
+        background-size: cover;
+        height: 100vh;
+        /* display: flex; */
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* Glass effect for the card */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    /* Optional: To make the text on the cards more readable */
+    .form-label,
+    .card-title,
+    input {
+        color: #fff;
+    }
+</style>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card glass-card">
+                <div class="card-body">
+                    <h3 class="card-title text-center mb-4">Farmer Login</h3>
+                    <!-- Traditional Login Form -->
+                    <form id="login-form" method="POST">
+                        {% csrf_token %}
+                        <div class="form-outline mb-4">
+                            <input type="text" id="username" class="form-control" name="username" required />
+                            <label class="form-label" for="username">Username</label>
+                        </div>
+
+                        <div class="form-outline mb-4">
+                            <input type="password" id="password" class="form-control" name="password" required />
+                            <label class="form-label" for="password">Password</label>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-block">Login</button>
+                    </form>
+
+                    <!-- Scan Face ID Section -->
+                    <button id="face-scan-btn" type="button" class="btn btn-secondary btn-block mt-3">Scan Face ID</button>
+                    <video id="videoInput" autoplay muted style="width:100%; display:none;"></video>
+                    
+                    <!-- Hidden input to send face image -->
+                    <form id="face-id-form" method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="face_image" id="face_image">
+                    </form>
+                    </div>
+                    </div>
+                    </div>
+                    </div>
+                    </div>
+                    
+<script>
+    // Elements
+    const video = document.getElementById('videoInput');
+    const faceImageInput = document.getElementById('face_image');
+    const faceScanBtn = document.getElementById('face-scan-btn');
+
+    // Start the video stream
+    faceScanBtn.addEventListener('click', function () {
+        video.style.display = 'block';
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(function (stream) {
+                video.srcObject = stream;
+            })
+            .catch(function (error) {
+                console.error("Error accessing the camera: ", error);
+                alert('Error accessing the camera');
+            });
+
+        // After a few seconds, capture the face
+        setTimeout(captureFace, 3000);
+    });
+
+    // Capture the face from the video stream
+    function captureFace() {
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const context = canvas.getContext('2d');
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        // Convert to base64 image
+        const imageDataUrl = canvas.toDataURL('image/png');
+
+        if (imageDataUrl) {
+            // Set the hidden input field with the base64 image data
+            faceImageInput.value = imageDataUrl;
+
+            // Create FormData to send the face image
+            const formData = new FormData();
+            formData.append('face_image', imageDataUrl);
+            formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+
+            // Send the captured face image via AJAX to the server for face recognition
+            fetch('/farmer_login/', {
+                method: 'POST',
+                body: formData,
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Redirect to the farmer dashboard if login is successful
+                        window.location.href = data.redirect_url;
+                    } else {
+                        alert(data.message);  // Show the error message (e.g., "Face ID not found")
+                    }
+                })
+                .catch(error => {
+                    console.error('Error during face recognition:', error);
+                    alert('An error occurred while processing the face recognition.');
+                });
+        } else {
+            alert("Error capturing the image. Please try again.");
+        }
+    }
+</script>
+
+{% endblock %}
