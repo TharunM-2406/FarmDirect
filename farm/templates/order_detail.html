@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container my-4">
+    <h2 class="mb-4">Order Details</h2>
+    <div class="card">
+        <div class="card-header 
+                    {% if order.status == 'Pending' %}
+                        bg-warning text-dark
+                    {% elif order.status == 'Completed' %}
+                        bg-success text-white
+                    {% elif order.status == 'Cancelled' %}
+                        bg-danger text-white
+                    {% endif %}
+                text-center">
+            Order for {{ order.produce.name }} - {{ order.status }}
+        </div>
+        <div class="card-body row">
+            <div class="col-md-6">
+                <img src="{{ order.produce.image.url }}" alt="{{ order.produce.name }}" class="img-fluid mb-4" />
+            </div>
+            <div class="col-md-6">
+                <p><strong>Quantity Ordered:</strong> {{ order.quantity_ordered }}</p>
+                <p><strong>Total Price:</strong> ${{ order.total_price }}</p>
+                <p><strong>Status:</strong> {{ order.status }}</p>
+                <p><strong>Delivery or Pickup:</strong> {{ order.delivery_or_pickup }}</p>
+                {% if order.delivery_address %}
+                <p><strong>Delivery Address:</strong> {{ order.delivery_address }}</p>
+                {% endif %}
+                <p><strong>Ordered On:</strong> {{ order.order_date|date:"M d, Y H:i" }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
