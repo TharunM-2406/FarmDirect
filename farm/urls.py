@@ -34,4 +34,13 @@ urlpatterns = [
     path('orders/', views.orders_detail_view, name='orders_detail_view'),
     path('product/<int:product_id>/',
          views.ProductDetailsView, name='product_details'),
+    path('add-to-cart/<int:item_id>/', views.add_to_cart, name='add_to_cart'),
+    path('cart/', views.cart, name='cart'),
+    path('update-cart/', views.update_cart, name='update_cart'),
+    path('cart-count/', views.cart_count, name='cart_count'),
+    path('create-payment-intent/', views.create_checkout_session,
+         name='create_checkout_session'),
+    path('payment/success/', views.payment_success, name='success'),
+    path('payment/cancel/', views.payment_cancel, name='cancel'),
+    path('orders/<int:order_id>/', views.order_detail_view, name='order_detail'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
