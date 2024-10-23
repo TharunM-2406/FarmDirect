@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card text-center">
+                <div class="card-header">
+                    Payment Status
+                </div>
+                <div class="card-body">
+                    <!-- Tick Mark Badge -->
+                    <div class="tick-mark-badge">
+                        <i class="fa fa-check-circle fa-4x animate-tick"></i>
+                    </div>
+                    <h5 class="card-title">Payment Successful!</h5>
+                    <p class="card-text">Thank you for your purchase. Your payment has been processed successfully.</p>
+                    <a href="{% url 'home' %}" class="btn btn-primary">Go to Home</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .animate-tick {
+        color: #4BB543;
+        animation: fadeIn 2s;
+    }
+
+    @keyframes fadeIn {
+        0% {
+            opacity: 0;
+            transform: scale(0.5);
+        }
+
+        50% {
+            opacity: 0.5;
+        }
+
+        100% {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+</style>
+{% endblock %}

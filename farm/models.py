@@ -13,8 +13,6 @@ class User(AbstractUser):
         swappable = 'AUTH_USER_MODEL'
 
 # Model for Farmer
-
-
 class Farmer(models.Model):
     # Use settings.AUTH_USER_MODEL
     user = models.OneToOneField(
@@ -38,7 +36,7 @@ class Produce(models.Model):
     
     farmer = models.ForeignKey(Farmer, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
-    price_per_unit = models.DecimalField(max_digits=10, decimal_places=2)
+    price_per_unit = models.DecimalField(max_digits=10, decimal_places=2) 
     quantity_available = models.PositiveIntegerField()
     quality = models.CharField(max_length=10, choices=QUALITY_CHOICES)
     image = models.ImageField(

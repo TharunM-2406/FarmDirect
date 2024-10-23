@@ -87,19 +87,19 @@
                         <a class="nav-link text-white" aria-current="page" href="{% url 'product_catalog' %}">PRODUCTS</a>
                         {% endif %}
                     </li>
-                    <!-- <li class="nav-item ">
+                    <li class="nav-item ">
                         {% if request.path == '/orders/'%}
                         <a class="nav-link active text-white" aria-current="page" href="{% url 'orders_detail_view' %}">ORDERS</a>
                         {% else %}
                         <a class="nav-link text-white" aria-current="page" href="{% url 'orders_detail_view' %}">ORDERS</a>
                         {% endif %}
                     </li> -->
-                    <!-- <li class="nav-item ms-auto mb-2 mb-lg-0">
+                    <li class="nav-item ms-auto mb-2 mb-lg-0">
                         <a href="{% url 'cart' %}" class="nav-link">
                             <i class="fas fa-shopping-cart"></i>
                             <span class="badge rounded-pill bg-danger" id="cartItemCount">0</span>
                         </a>
-                    </li>                     -->
+                    </li>                    
                     <li class="nav-item">
                         <a class="nav-link text-white" aria-current="page" href="{% url 'logout' %}">LOGOUT</a>
                     </li>
@@ -150,6 +150,33 @@
     {% endblock %}
     <!-- MDB -->
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.0.1/mdb.min.js"></script>
+<script>
+    function updateCartCount() {
+        $.ajax({
+            url: '/cart-count/', // Make sure this URL matches your Django path for the cart count
+            type: 'GET',
+            dataType: 'json', // Expecting JSON response
+            success: function (response) {
+                $('#cartItemCount').text(response.count); // Update badge
+            },
+            error: function (error) {
+                console.error('Error fetching cart count:', error);
+            }
+        });
+    }
+
+    // Call this function after any operation that updates the cart.
+    updateCartCount();
+
+    $.ajaxSetup({
+        beforeSend: function (xhr, settings) {
+            if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
+                xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+            }
+        }
+    });
+
+</script>
 </body>
 
 </html>

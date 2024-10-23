@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    div .input-group {
+        width: 120px;
+        /* Adjust width as desired */
+    }
+</style>
+
+<div class="container">
+    <h2>Cart</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Item</th>
+                <th>Quantity</th>
+                <th>Price</th>
+                <th>Total</th>
+
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in cart %}
+            <tr>
+                <td>{{ entry.item.name }}</td>
+                <td>
+                    <div class="input-group input-group-sm">
+                        <button class="btn btn-outline-primary btn-sm quantity-update"
+                            data-item-id="{{ entry.item.id }}" data-action="remove">-</button>
+                        <input type="number" min="1" class="form-control text-center quantity-input"
+                            value="{{ entry.quantity }}" data-item-id="{{ entry.item.id }}">
+                        <button class="btn btn-outline-primary btn-sm quantity-update"
+                            data-item-id="{{ entry.item.id }}" data-action="add">+</button>
+                    </div>
+                </td>
+                <td>${{ entry.item.price_per_unit }}</td>
+                <td>${{ entry.total_price }}</td>
+            </tr>
+            {% endfor %}
+            <tr>
+                <td colspan="3"><strong>Total Cart Price</strong></td>
+                <td><strong>${{ total_cart_price }}</strong></td>
+                <td></td>
+            </tr>
+        </tbody>
+    </table>
+    <!-- Place Order Button -->
+    <div class="text-center mt-3">
+        <a href="{% url 'create_checkout_session' %}" class="btn btn-primary">Purchase</a>
+
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $('.quantity-update').click(function () {
+            var itemId = $(this).data('item-id');
+            var action = $(this).data('action');
+            $.ajax({
+                url: '{% url "update_cart" %}',
+                type: 'post',
+                data: {
+                    'item_id': itemId,
+                    'action': action,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                success: function (response) {
+                    if (response.success) {
+                        location.reload();  // Reload the page to update the cart display
+                    }
+                }
+            });
+        });
+    });
+</script>
+<script>
+    // Using jQuery for simplicity
+    $(document).ready(function () {
+            $('#purchase-btn').click(function (e) {
+                e.preventDefault(); // Prevent the default form submission
+
+                $.ajax({
+                    url: '/create-payment-intent/', // Ensure this URL matches your Django URL for creating the checkout session
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}', // Ensure CSRF token is included if making a POST request
+                    },
+                    success: function (response) {
+                        // Redirect to the Stripe checkout session URL
+                        window.location.href = response.session_url;
+                    },
+                    error: function (xhr, status, error) {
+                        // Handle any errors
+                        console.error("Error during payment process:", error);
+                        alert("Error during payment process.");
+                    }
+                });
+            });
+        });
+
+</script>
+{% endblock %}
