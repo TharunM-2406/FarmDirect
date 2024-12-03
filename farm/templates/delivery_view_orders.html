@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h3 class="text-center mb-4">Assigned Orders</h3>
+    {% if assigned_orders %}
+    <div class="card">
+        <div class="card-body">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Consumer</th>
+                        <th>Address</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in assigned_orders %}
+                    <tr>
+                        <td>{{ order.id }}</td>
+                        <td>{{ order.consumer.user.username }}</td>
+                        <td>{{ order.delivery_address }}</td>
+                        <td>{{ order.status }}</td>
+                        <td>
+                            <a href="{% url 'chat_view' order.id %}" class="btn btn-sm btn-info">Chat</a>
+                            {% if order.status == "In Transit" %}
+                            <form action="{% url 'mark_order_delivered' order.id %}" method="post"
+                                style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-success">Mark as Delivered</button>
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <p class="text-center">No assigned orders at the moment.</p>
+    {% endif %}
+</div>
+{% endblock %}

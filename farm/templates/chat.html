@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card">
+        <div class="card-body">
+            <h4 class="text-center">Chat for Order #{{ order.id }}</h4>
+            <div class="chat-box mt-4" id="chat-box" style="height: 400px; overflow-y: auto;">
+                {% for message in messages %}
+                <div class="d-flex {% if message.sender == request.user %}justify-content-end{% else %}justify-content-start{% endif %} mb-3 message"
+                    data-message-id="{{ message.id }}">
+                    <div class="card">
+                        <div class="card-body">
+                            <p class="mb-1"><strong>{{ message.sender.username }}</strong></p>
+                            <p>{{ message.content }}</p>
+                            <small class="text-muted">{{ message.timestamp|date:"H:i" }}</small>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <form id="chat-form" class="mt-3">
+                {% csrf_token %}
+                <div class="form-outline mb-4">
+                    <textarea id="message-input" class="form-control" rows="3" required></textarea>
+                    <label class="form-label" for="message">Type a message</label>
+                </div>
+                <div class="text-center">
+                    <button type="submit" class="btn btn-primary btn-block">Send</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    const chatBox = document.getElementById('chat-box');
+    const chatForm = document.getElementById('chat-form');
+    const messageInput = document.getElementById('message-input');
+    let lastMessageId = document.querySelector('.message:last-child')?.dataset.messageId || 0;
+    const currentUser = "{{ request.user.username }}";  // Ensure this is available
+
+    // Function to get CSRF token from cookies
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                cookie = cookie.trim();
+                if (cookie.startsWith(name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    const csrftoken = getCookie('csrftoken');
+
+    // Function to scroll chat box to the bottom
+    function scrollToBottom() {
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    // Function to add a new message to the chat box
+    function addMessage(message) {
+        const messageElement = document.createElement('div');
+        messageElement.classList.add(
+            'd-flex',
+            message.sender === currentUser ? 'justify-content-end' : 'justify-content-start',
+            'mb-3',
+            'message'
+        );
+        messageElement.dataset.messageId = message.id;
+        messageElement.innerHTML = `
+            <div class="card">
+                <div class="card-body">
+                    <p class="mb-1"><strong>${message.sender}</strong></p>
+                    <p>${message.content}</p>
+                    <small class="text-muted">${message.timestamp}</small>
+                </div>
+            </div>`;
+        chatBox.appendChild(messageElement);
+        scrollToBottom();
+    }
+
+    // AJAX function to send a message
+    chatForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const message = messageInput.value.trim();
+
+        if (message === "") {
+            return;  // Prevent sending empty messages
+        }
+
+        messageInput.value = '';  // Clear the input field
+
+        fetch("{% url 'chat_view' order.id %}", {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken,
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: new URLSearchParams({ message: message })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    addMessage(data.message);
+                    lastMessageId = data.message.id;
+                } else {
+                    console.error("Message not sent:", data);
+                }
+            })
+            .catch(error => console.error("Error:", error));
+    });
+
+    // Polling function to fetch new messages
+    function fetchNewMessages() {
+        fetch("{% url 'chat_view' order.id %}?last_message_id=" + lastMessageId, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                data.messages.forEach(message => {
+                    addMessage(message);
+                    lastMessageId = message.id;
+                });
+            })
+            .catch(error => console.error("Error fetching new messages:", error));
+    }
+
+    // Set interval to poll for new messages every 3 seconds
+    setInterval(fetchNewMessages, 3000);
+
+    // Scroll to bottom initially
+    scrollToBottom();
+</script>
+
+{% endblock %}

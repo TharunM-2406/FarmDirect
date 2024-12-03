@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container my-4">
+    <h2 class="mb-4">Your Orders</h2>
+    <ul class="list-group">
+        {% for order in orders %}
+        <li class="list-group-item">
+            <a href="{% url 'order_detail' order.id %}">
+                Ordered: {{ order.produce.name }} on {{ order.order_date|date:"M d, Y" }}
+            </a>
+        </li>
+        {% empty %}
+        <li class="list-group-item">No orders made.</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}
