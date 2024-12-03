@@ -136,3 +136,5 @@ STRIPE_WEBHOOK_SECRET = 'whsec_d07348cc62dcd60f34f25e070b41f40c7e3af9b5ae1bb10be
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+AUTH_USER_MODEL = 'farm.User'
